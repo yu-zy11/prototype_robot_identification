@@ -1,31 +1,28 @@
 % close all
 % clear all;
 % clc;
-m = sym('m',[6 1],'real');
-hx = sym('hx',[6 1],'real');
-hy = sym('hy',[6 1],'real');
-hz = sym('hz',[6 1],'real');
-Ixx = sym('Ixx',[6 1],'real');
-Ixy = sym('Ixy',[6 1],'real');
-Ixz = sym('Ixz',[6 1],'real');
-Iyz = sym('Iyz',[6 1],'real');
-Iyy = sym('Iyy',[6 1],'real');
-Izz = sym('Izz',[6 1],'real');
+m = sym('m',[3 1],'real');
+hx = sym('hx',[3 1],'real');
+hy = sym('hy',[3 1],'real');
+hz = sym('hz',[3 1],'real');
+Ixx = sym('Ixx',[3 1],'real');
+Ixy = sym('Ixy',[3 1],'real');
+Ixz = sym('Ixz',[3 1],'real');
+Iyz = sym('Iyz',[3 1],'real');
+Iyy = sym('Iyy',[3 1],'real');
+Izz = sym('Izz',[3 1],'real');
+
 syms q1 q2 q3 real;
 syms dq1 dq2 dq3 real;
 syms ddq1 ddq2 ddq3 real;
 syms l1 l2 l3  g real;
-syms n1 n2 n3 real;
 G=[0 0 -g]'; %gravity
 %dynamic parameters
 Pi_1=[Ixx(1),Ixy(1),Ixz(1),Iyy(1),Iyz(1),Izz(1),m(1)*hx(1),m(1)*hy(1),m(1)*hz(1),m(1)]';
 Pi_2=[Ixx(2),Ixy(2),Ixz(2),Iyy(2),Iyz(2),Izz(2),m(2)*hx(2),m(2)*hy(2),m(2)*hz(2),m(2)]';
 Pi_3=[Ixx(3),Ixy(3),Ixz(3),Iyy(3),Iyz(3),Izz(3),m(3)*hx(3),m(3)*hy(3),m(3)*hz(3),m(3)]';
-Pi_4=[Ixx(4),Ixy(4),Ixz(4),Iyy(4),Iyz(4),Izz(4),m(4)*hx(4),m(4)*hy(4),m(4)*hz(4),m(4)]';
-Pi_5=[Ixx(5),Ixy(5),Ixz(5),Iyy(5),Iyz(5),Izz(5),m(5)*hx(5),m(5)*hy(5),m(5)*hz(5),m(5)]';
-Pi_6=[Ixx(6),Ixy(6),Ixz(6),Iyy(6),Iyz(6),Izz(6),m(6)*hx(6),m(6)*hy(6),m(6)*hz(6),m(6)]';
-PI=[Pi_1', Pi_2', Pi_3', Pi_4', Pi_5', Pi_6']';
-% PI=[Pi_1', Pi_2', Pi_3']';
+PI=[Pi_1', Pi_2', Pi_3']';
+
 q = [q1;q2;q3];
 dq = [dq1;dq2;dq3];
 ddq = [ddq1;ddq2;ddq3];
@@ -59,27 +56,18 @@ vel1=simplify(R01'*vel1_in_base);
 vel2=simplify(R02'*vel2_in_base);
 vel3=simplify(R03'*vel3_in_base);
 
-%% ---------
+%% --------- kinetic energy and potential energy
 T_1 = getTi(omega1, vel1);
 T_2 = getTi(omega2, vel2);
 T_3 = getTi(omega3, vel3);
-% T_4 = getTi(w_abadrotor_inabadrotor, v_abadrotorjoint_inabadrotor);
-% T_5 = getTi(w_hiprotor_inhiprotor, v_hiprotorjoint_inhiprotor);
-% T_6 = getTi(w_kneerotor_inkneerotor, v_kneerotorjoint_inkneerotor);
-% T = [T_1, T_2, T_3, T_4, T_5, T_6];
-T = [T_1, T_2, T_3];
+T = [T_1, T_2, T_3];%kinetic energy=T*PI
 
-%ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½jointï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ÂµÄ±ï¿½ï¿½ï¿½
 V_1 = getVi(G, R01, P01);
 V_2 = getVi(G, R02, P02);
 V_3 = getVi(G, R03, P03);
-% V_4 = getVi(g, R_04, abadrotorjoint_inBody(1:3));
-% V_5 = getVi(g, R_05, hiprotorjoint_inBody(1:3));
-% V_6 = getVi(g, R_06, kneerotorjoint_inBody(1:3));
-% V = [V_1, V_2, V_3, V_4, V_5, V_6];
-V = [V_1, V_2, V_3];
+V = [V_1, V_2, V_3];%potential energy=V*PI
 
-%tau=d(d(L)/d(dq))/d(t）-d(L)/d(q)
+%lagrange
 L=T-V;
 T_vq = jacobian(T, dq);
 Y1 = diff(T_vq, q(1))*dq(1) + diff(T_vq, q(2))*dq(2) + diff(T_vq, q(3))*dq(3)...
@@ -119,9 +107,8 @@ K = [w(1) w(2) w(3)  0    0    0
 T_hat = [1/2.* w' * K,   v' * Vec2so3(w),  1/2.* v' * v];
 end
 
+%R代表从0到i的旋转矩阵,P代表关节i在世界坐标系下的位置
 function V_hat = getVi(G,R,P)
-%R代表从0到i的旋转矩阵
-%P代表关节i在世界坐标系下的位置
 V_hat = [0,0,0,0,0,0, -G' * R,  -G'*P];
 
 end

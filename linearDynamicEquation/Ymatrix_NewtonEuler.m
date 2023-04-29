@@ -71,8 +71,8 @@ Y(2,1:30)=axis2(1:3)'*Yn2;
 Y(3,1:30)=axis3(1:3)'*Yn3;
 Y=simplify(Y)
 
-%verification with lagarange 
-Ymatrix_lagarange
+%verification with lagrange 
+Ymatrix_lagrange
 a=simplify(Y-Y_tmp)
 
 function Ai=getAi(dotwi,wi,ai)
